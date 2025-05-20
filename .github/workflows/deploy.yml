@@ -1,0 +1,36 @@
+name: Build and Deploy API to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código fuente
+        uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Restaurar dependencias
+        run: dotnet restore ApiConsignaciones.csproj
+
+      - name: Compilar el proyecto
+        run: dotnet build --configuration Release --no-restore ApiConsignaciones.csproj
+
+      - name: Publicar la aplicación
+        run: dotnet publish --configuration Release --output ./publish ApiConsignaciones.csproj
+
+      - name: Desplegar a Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: apiconsignaciones
+          slot-name: production
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./publish
